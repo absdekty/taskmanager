@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	repo, err := repository.NewRepository("..")
+	repo, err := repository.NewRepository("...")
 	if err != nil {
 		log.Fatal(err)
 	}

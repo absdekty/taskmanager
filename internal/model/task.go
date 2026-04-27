@@ -26,24 +26,23 @@ type Task struct {
 /*
 	Set DueTime
 	Set NotifyAt
-	
+
 	Get Overdue
 	Get Notifiable
 */
 
-
 var (
 	/* Общие */
-	ErrEmptyName       = errors.New("Название пустое")
-	
+	ErrEmptyName = errors.New("Название пустое")
+
 	/* Задача */
 	ErrTaskIsOverdue = errors.New("Задача в дедлайне")
-	ErrPastDeadline = errors.New("Дедлайн в прошлом")
-	ErrPastNotify = errors.New("Напоминание в прошлом")
-	ErrNotExisting = errors.New("Тег не существует")
-	
+	ErrPastDeadline  = errors.New("Дедлайн в прошлом")
+	ErrPastNotify    = errors.New("Напоминание в прошлом")
+	ErrNotExisting   = errors.New("Тег не существует")
+
 	/* Субзадача */
-	ErrInvalidProgress = errors.New("Прогресс  меньше единицы")
+	ErrInvalidProgress     = errors.New("Прогресс  меньше единицы")
 	ErrMaxProgressExceeded = errors.New("Прогресс выше максимально")
 	ErrMinProgressExceeded = errors.New("Прогресс отрицателен")
 )
@@ -69,13 +68,13 @@ func (t *Task) AddTag(tag string) error {
 	if t.IsOverdue() {
 		return ErrTaskIsOverdue
 	}
-	
+
 	if tag == "" {
 		return ErrEmptyName
 	}
-	
+
 	t.Tags = append(t.Tags, tag)
-	
+
 	return nil
 }
 
@@ -83,18 +82,18 @@ func (t *Task) RemoveTag(tag string) error {
 	if t.IsOverdue() {
 		return ErrTaskIsOverdue
 	}
-	
+
 	if tag == "" {
 		return ErrEmptyName
 	}
-	
+
 	for i, val := range t.Tags {
 		if tag == val {
 			t.Tags = append(t.Tags[:i], t.Tags[i+1:]...)
 			return nil
 		}
 	}
-	
+
 	return ErrNotExisting
 }
 
@@ -103,7 +102,7 @@ func (t *Task) AddSubtask(name string, progress int) error {
 	if err != nil {
 		return err
 	}
-	
+
 	t.Subtasks = append(t.Subtasks, subtask)
 	return nil
 }
@@ -112,18 +111,18 @@ func (t *Task) RemoveSubtask(id string) error {
 	if t.IsOverdue() {
 		return ErrTaskIsOverdue
 	}
-	
+
 	if id == "" {
 		return ErrEmptyName
 	}
-	
+
 	for i, val := range t.Subtasks {
 		if id == val.ID {
 			t.Subtasks = append(t.Subtasks[:i], t.Subtasks[i+1:]...)
 			return nil
 		}
 	}
-	
+
 	return ErrNotExisting
 }
 
@@ -131,9 +130,9 @@ func (t *Task) SetDueTime(duetime time.Time) error {
 	if duetime.Before(time.Now().UTC()) {
 		return ErrPastDeadline
 	}
-	
+
 	t.DueTime = duetime
-	
+
 	return nil
 }
 
@@ -149,9 +148,9 @@ func (t *Task) SetNotifyAt(notifyat time.Time) error {
 	if notifyat.Before(time.Now().UTC()) {
 		return ErrPastNotify
 	}
-	
+
 	t.NotifyAt = notifyat
-	
+
 	return nil
 }
 
@@ -180,7 +179,7 @@ func (t *Subtask) ChangeMaxProgress(MaxProgress int) error {
 	if MaxProgress < 1 {
 		return ErrInvalidProgress
 	}
-	
+
 	t.NeedProgress = MaxProgress
 	return nil
 }
@@ -190,10 +189,10 @@ func (t *Subtask) IncrementProgress(progress int) error {
 		return ErrInvalidProgress
 	}
 
-	if t.Progress + progress > t.NeedProgress {
+	if t.Progress+progress > t.NeedProgress {
 		return ErrMaxProgressExceeded
 	}
-	
+
 	t.Progress += progress
 	return nil
 }
@@ -203,10 +202,10 @@ func (t *Subtask) DecrementProgress(progress int) error {
 		return ErrInvalidProgress
 	}
 
-	if t.Progress - progress < 0 {
+	if t.Progress-progress < 0 {
 		return ErrMinProgressExceeded
 	}
-	
+
 	t.Progress -= progress
 	return nil
 }

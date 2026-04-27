@@ -1,8 +1,8 @@
 package repository
 
 import (
-	_ "github.com/mattn/go-sqlite3"
 	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Repository struct {
@@ -14,6 +14,6 @@ func NewRepository(path string) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &Repository{DB: db}, nil
 }

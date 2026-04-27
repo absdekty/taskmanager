@@ -148,10 +148,10 @@ func TestTask_RemoveTag(t *testing.T) {
 
 func TestTask_AddSubtask(t *testing.T) {
 	tests := []struct {
-		name      string
-		subName   string
-		progress  int
-		wantErr   error
+		name     string
+		subName  string
+		progress int
+		wantErr  error
 	}{
 		{"успешное добавление", "Подзадача", 5, nil},
 		{"пустое имя", "", 5, ErrEmptyName},
@@ -178,9 +178,9 @@ func TestTask_RemoveSubtask(t *testing.T) {
 		task.DueTime = future
 		task.AddSubtask("test", 5)
 		subtaskID := task.Subtasks[0].ID
-		
+
 		err := task.RemoveSubtask(subtaskID)
-		
+
 		if err != nil {
 			t.Errorf("got %v, want nil", err)
 		}
@@ -192,9 +192,9 @@ func TestTask_RemoveSubtask(t *testing.T) {
 	t.Run("подзадача не найдена", func(t *testing.T) {
 		task, _ := NewTask("Test")
 		task.DueTime = future
-		
+
 		err := task.RemoveSubtask("invalid-id")
-		
+
 		if err != ErrNotExisting {
 			t.Errorf("got %v, want %v", err, ErrNotExisting)
 		}
@@ -203,9 +203,9 @@ func TestTask_RemoveSubtask(t *testing.T) {
 	t.Run("просроченная задача", func(t *testing.T) {
 		task, _ := NewTask("Test")
 		task.DueTime = past
-		
+
 		err := task.RemoveSubtask("any-id")
-		
+
 		if err != ErrTaskIsOverdue {
 			t.Errorf("got %v, want %v", err, ErrTaskIsOverdue)
 		}
@@ -214,9 +214,9 @@ func TestTask_RemoveSubtask(t *testing.T) {
 	t.Run("пустой id", func(t *testing.T) {
 		task, _ := NewTask("Test")
 		task.DueTime = future
-		
+
 		err := task.RemoveSubtask("")
-		
+
 		if err != ErrEmptyName {
 			t.Errorf("got %v, want %v", err, ErrEmptyName)
 		}
@@ -463,11 +463,11 @@ func TestSubtask_ChangeMaxProgress(t *testing.T) {
 
 func TestSubtask_IncrementProgress(t *testing.T) {
 	tests := []struct {
-		name        string
-		setup       func(*Subtask)
-		increment   int
-		wantErr     error
-		expected    int
+		name      string
+		setup     func(*Subtask)
+		increment int
+		wantErr   error
+		expected  int
 	}{
 		{"успешное увеличение", func(s *Subtask) { s.NeedProgress = 10; s.Progress = 3 }, 2, nil, 5},
 		{"превышение максимума", func(s *Subtask) { s.NeedProgress = 10; s.Progress = 9 }, 2, ErrMaxProgressExceeded, 9},
@@ -491,11 +491,11 @@ func TestSubtask_IncrementProgress(t *testing.T) {
 
 func TestSubtask_DecrementProgress(t *testing.T) {
 	tests := []struct {
-		name        string
-		setup       func(*Subtask)
-		decrement   int
-		wantErr     error
-		expected    int
+		name      string
+		setup     func(*Subtask)
+		decrement int
+		wantErr   error
+		expected  int
 	}{
 		{"успешное уменьшение", func(s *Subtask) { s.NeedProgress = 10; s.Progress = 5 }, 2, nil, 3},
 		{"ниже нуля", func(s *Subtask) { s.NeedProgress = 10; s.Progress = 1 }, 2, ErrMinProgressExceeded, 1},

@@ -1,13 +1,13 @@
 package model
 
 import (
-	"errors"
 	"github.com/google/uuid"
 	"time"
 )
 
 type Subtask struct {
 	ID           string `json:"id"`
+	TaskID       string `json:"taskid"`
 	Name         string `json:"name"`
 	NeedProgress int    `json:"need"`
 	Progress     int    `json:"progress"`
@@ -22,30 +22,6 @@ type Task struct {
 	DueTime  time.Time  `json:"overtime"`
 	NotifyAt time.Time  `json:"notify"`
 }
-
-/*
-	Set DueTime
-	Set NotifyAt
-
-	Get Overdue
-	Get Notifiable
-*/
-
-var (
-	/* Общие */
-	ErrEmptyName = errors.New("Название пустое")
-
-	/* Задача */
-	ErrTaskIsOverdue = errors.New("Задача в дедлайне")
-	ErrPastDeadline  = errors.New("Дедлайн в прошлом")
-	ErrPastNotify    = errors.New("Напоминание в прошлом")
-	ErrNotExisting   = errors.New("Тег не существует")
-
-	/* Субзадача */
-	ErrInvalidProgress     = errors.New("Прогресс  меньше единицы")
-	ErrMaxProgressExceeded = errors.New("Прогресс выше максимально")
-	ErrMinProgressExceeded = errors.New("Прогресс отрицателен")
-)
 
 /* ЗАДАЧИ */
 func NewTask(title string) (*Task, error) {
@@ -103,6 +79,7 @@ func (t *Task) AddSubtask(name string, progress int) error {
 		return err
 	}
 
+	subtask.TaskID = t.ID
 	t.Subtasks = append(t.Subtasks, subtask)
 	return nil
 }

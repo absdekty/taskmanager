@@ -22,7 +22,7 @@ func main() {
 	defer cancel()
 
 	/* Инициализация репозитория */
-	repo, err := repository.NewRepository("./tasks.db")
+	repo, err := sqlite.NewDB("./tasks.db")
 	if err != nil {
 		logger.Error.Fatal(err)
 	}

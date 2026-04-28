@@ -2,9 +2,12 @@ package ui
 
 import (
 	"context"
+	"image/color"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
 	"github.com/absdekty/taskmanager/internal/service"
 )
 
@@ -15,6 +18,24 @@ type UI struct {
 
 	app    fyne.App
 	window fyne.Window
+	
+	sections struct {
+		search *fyne.Container
+		task *fyne.Container
+		tags *fyne.Container
+	}
+	
+	search struct {
+		bg *canvas.Rectangle
+	}
+	
+	task struct {
+		bg *canvas.Rectangle
+	}
+	
+	tags struct {
+		bg *canvas.Rectangle
+	}
 }
 
 func NewUI(service service.ServiceI) *UI {
@@ -27,6 +48,14 @@ func NewUI(service service.ServiceI) *UI {
 		app:     a,
 		window:  w,
 	}
+	
+	ui.InitBackground()
+	
+	ui.InitSearch()
+	ui.InitTask()
+	ui.InitTags()
+	
+	ui.UpdateContent()
 
 	return ui
 }
@@ -39,4 +68,22 @@ func (ui *UI) Run(ctx context.Context) error {
 	ui.window.ShowAndRun()
 
 	return nil
+}
+
+func (ui *UI) InitBackground() {
+	ui.search.bg = canvas.NewRectangle(color.RGBA{43, 43, 43, 1})
+	ui.task.bg = canvas.NewRectangle(color.RGBA{43, 43, 43, 1})
+	ui.tags.bg = canvas.NewRectangle(color.RGBA{43, 43, 43, 1})
+}
+
+func (ui *UI) UpdateContent() {
+	mainContent := container.NewHSplit(ui.sections.search, ui.sections.task)
+	mainContent.SetOffset(0.25)
+
+	ui.window.SetContent(
+		container.NewBorder(
+			nil,
+			ui.sections.tags,
+			nil, nil,
+			mainContent))
 }

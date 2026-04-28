@@ -100,6 +100,78 @@ func TestGetSubtasksByTask(t *testing.T) {
 	}
 }
 
+func TestGetSubtask(t *testing.T) {
+	db := setupTestDB(t)
+	ctx := context.Background()
+
+	task := createTestTask(t, db, "Parent Task")
+	created := createTestSubtask(t, db, task.ID, "Test Subtask", 10)
+
+	subtask, err := db.GetSubtask(ctx, created.ID)
+	if err != nil {
+		t.Fatalf("GetSubtask() error = %v", err)
+	}
+
+	if subtask == nil {
+		t.Fatal("GetSubtask() returned nil")
+	}
+
+	if subtask.ID != created.ID {
+		t.Errorf("ID = %v, want %v", subtask.ID, created.ID)
+	}
+	if subtask.TaskID != task.ID {
+		t.Errorf("TaskID = %v, want %v", subtask.TaskID, task.ID)
+	}
+	if subtask.Name != "Test Subtask" {
+		t.Errorf("Name = %v, want 'Test Subtask'", subtask.Name)
+	}
+	if subtask.NeedProgress != 10 {
+		t.Errorf("NeedProgress = %v, want 10", subtask.NeedProgress)
+	}
+	if subtask.Progress != 0 {
+		t.Errorf("Progress = %v, want 0", subtask.Progress)
+	}
+}
+
+func TestGetSubtaskNotFound(t *testing.T) {
+	db := setupTestDB(t)
+	ctx := context.Background()
+
+	subtask, err := db.GetSubtask(ctx, "non-existent-id")
+	if err != nil {
+		t.Fatalf("GetSubtask() error = %v", err)
+	}
+
+	if subtask != nil {
+		t.Errorf("Expected nil, got %v", subtask)
+	}
+}
+
+func TestGetSubtaskAfterUpdate(t *testing.T) {
+	db := setupTestDB(t)
+	ctx := context.Background()
+
+	task := createTestTask(t, db, "Parent Task")
+	subtask := createTestSubtask(t, db, task.ID, "Original", 10)
+
+	// Обновляем прогресс
+	subtask.Progress = 7
+	err := db.UpdateSubtask(ctx, subtask)
+	if err != nil {
+		t.Fatalf("UpdateSubtask() error = %v", err)
+	}
+
+	// Получаем и проверяем
+	updated, err := db.GetSubtask(ctx, subtask.ID)
+	if err != nil {
+		t.Fatalf("GetSubtask() error = %v", err)
+	}
+
+	if updated.Progress != 7 {
+		t.Errorf("Progress = %v, want 7", updated.Progress)
+	}
+}
+
 func TestGetSubtasksByTaskEmpty(t *testing.T) {
 	db := setupTestDB(t)
 	ctx := context.Background()

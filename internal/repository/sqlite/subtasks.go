@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/absdekty/taskmanager/internal/model"
 )
@@ -39,6 +40,23 @@ func (db *DB) GetSubtasksByTask(ctx context.Context, taskID string) ([]*model.Su
 	}
 
 	return subtasks, rows.Err()
+}
+
+func (db *DB) GetSubtask(ctx context.Context, id string) (*model.Subtask, error) {
+	query := `SELECT id, task_id, name, need_progress, progress FROM subtasks WHERE id = ?`
+
+	var subtask model.Subtask
+	err := db.QueryRowContext(ctx, query, id).Scan(
+		&subtask.ID, &subtask.TaskID, &subtask.Name, &subtask.NeedProgress, &subtask.Progress)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get subtask: %w", err)
+	}
+
+	return &subtask, nil
 }
 
 func (db *DB) UpdateSubtask(ctx context.Context, subtask *model.Subtask) error {

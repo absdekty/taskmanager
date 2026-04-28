@@ -22,6 +22,7 @@ type TaskRepositoryI interface {
 type SubtaskRepositoryI interface {
 	CreateSubtask(ctx context.Context, subtask *model.Subtask) error
 	GetSubtasksByTask(ctx context.Context, taskID string) ([]*model.Subtask, error)
+	GetSubtask(ctx context.Context, id string) (*model.Subtask, error)
 	UpdateSubtask(ctx context.Context, subtask *model.Subtask) error
 	DeleteSubtask(ctx context.Context, id string) error
 }

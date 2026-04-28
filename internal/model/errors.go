@@ -18,3 +18,8 @@ var (
 	ErrMaxProgressExceeded = errors.New("Прогресс выше максимально")
 	ErrMinProgressExceeded = errors.New("Прогресс отрицателен")
 )
+
+var (
+	ErrTaskNotFound    = errors.New("Задача не существует")
+	ErrSubtaskNotFound = errors.New("Субзадача не существует")
+)

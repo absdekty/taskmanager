@@ -26,10 +26,17 @@ type SubtaskRepositoryI interface {
 	DeleteSubtask(ctx context.Context, id string) error
 }
 
+type TagRepositoryI interface {
+	AddTag(ctx context.Context, taskID, tag string) error
+	RemoveTag(ctx context.Context, taskID, tag string) error
+	GetTagsByTask(ctx context.Context, taskID string) ([]string, error)
+}
+
 /* Основной интерфейс, реализующий CRUD-методы для tasks, subtasks */
 type RepositoryI interface {
 	TaskMainRepositoryI
 	TaskRepositoryI
 	SubtaskRepositoryI
+	TagRepositoryI
 	Close() error
 }

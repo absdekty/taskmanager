@@ -53,6 +53,13 @@ func initSchema(db *sql.DB) error {
             progress INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
         )`,
+		
+		`CREATE TABLE IF NOT EXISTS tags (
+			task_id TEXT NOT NULL,
+			tag TEXT NOT NULL,
+			PRIMARY KEY (task_id, tag),
+			FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+		);`,
 	}
 
 	for _, query := range queries {

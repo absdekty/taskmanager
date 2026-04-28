@@ -67,10 +67,7 @@ func (ui *UI) InitSearch() {
 	
 	ui.search.list.OnSelected = func(id widget.ListItemID) {
 		ui.currentTask = ui.search.tasks[id]
-		
-		logger.Info.Printf("выбрана задача %+v", ui.currentTask)
-		
-		/* Вызов обновления тегов, задачи*/
+		ui.tags.updateContent()
 	}
 	
 	/* Функция обновления контента */

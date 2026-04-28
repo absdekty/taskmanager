@@ -44,6 +44,10 @@ type UI struct {
 	
 	tags struct {
 		bg *canvas.Rectangle
+		
+		scroll *fyne.Container
+		
+		updateContent func()
 	}
 }
 
@@ -73,6 +77,7 @@ func (ui *UI) Run(ctx context.Context) error {
 	ui.ctx = ctx
 	
 	ui.search.updateContent()
+	ui.tags.updateContent()
 	
 	ui.window.Resize(fyne.NewSize(1000, 800))
 	ui.window.CenterOnScreen()

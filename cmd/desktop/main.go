@@ -39,7 +39,7 @@ func main() {
 	}
 
 	/* Завершение программы, ожидание конца запросов БД */
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer shutdownCancel()
 
 	<-shutdownCtx.Done()

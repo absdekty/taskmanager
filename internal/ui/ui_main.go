@@ -6,9 +6,11 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"github.com/absdekty/taskmanager/internal/service"
+	"github.com/absdekty/taskmanager/internal/model"
 )
 
 type UI struct {
@@ -19,6 +21,8 @@ type UI struct {
 	app    fyne.App
 	window fyne.Window
 	
+	currentTask *model.Task
+	
 	sections struct {
 		search *fyne.Container
 		task *fyne.Container
@@ -27,6 +31,11 @@ type UI struct {
 	
 	search struct {
 		bg *canvas.Rectangle
+		
+		tasks []*model.Task
+		list *widget.List
+		
+		updateContent func()
 	}
 	
 	task struct {
@@ -56,13 +65,15 @@ func NewUI(service service.ServiceI) *UI {
 	ui.InitTags()
 	
 	ui.UpdateContent()
-
+	
 	return ui
 }
 
 func (ui *UI) Run(ctx context.Context) error {
 	ui.ctx = ctx
-
+	
+	ui.search.updateContent()
+	
 	ui.window.Resize(fyne.NewSize(1000, 800))
 	ui.window.CenterOnScreen()
 	ui.window.ShowAndRun()
@@ -71,9 +82,9 @@ func (ui *UI) Run(ctx context.Context) error {
 }
 
 func (ui *UI) InitBackground() {
-	ui.search.bg = canvas.NewRectangle(color.RGBA{43, 43, 43, 1})
-	ui.task.bg = canvas.NewRectangle(color.RGBA{43, 43, 43, 1})
-	ui.tags.bg = canvas.NewRectangle(color.RGBA{43, 43, 43, 1})
+	ui.search.bg = canvas.NewRectangle(color.RGBA{43, 43, 43, 255})
+	ui.task.bg = canvas.NewRectangle(color.RGBA{43, 43, 43, 255})
+	ui.tags.bg = canvas.NewRectangle(color.RGBA{43, 43, 43, 255})
 }
 
 func (ui *UI) UpdateContent() {

@@ -68,6 +68,7 @@ func (ui *UI) InitSearch() {
 	ui.search.list.OnSelected = func(id widget.ListItemID) {
 		ui.currentTask = ui.search.tasks[id]
 		ui.tags.updateContent()
+		ui.task.updateContent()
 	}
 	
 	/* Функция обновления контента */

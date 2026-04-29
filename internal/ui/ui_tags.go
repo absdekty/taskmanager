@@ -25,6 +25,12 @@ func (ui *UI) tagsAddButton(tagName string) {
 	ui.tags.scroll.Refresh()
 }
 
+func (ui *UI) tagsAddDefaultButton() *widget.Button {
+	btn := widget.NewButton("тут будут теги..", nil)
+	btn.Disable()
+	return btn
+}
+
 func (ui *UI) InitTags() {
 	ui.tags.scroll = container.NewHBox()
 	
@@ -63,12 +69,12 @@ func (ui *UI) InitTags() {
 		
 		if ui.currentTask == nil {
 			btnAdd.Disable()
-			ui.tags.scroll.Add(widget.NewButton("тут будут теги.."))
+			ui.tags.scroll.Add(ui.tagsAddDefaultButton())
 		} else {
 			btnAdd.Enable()
 			
 			if len(ui.currentTask.Tags) == 0 {
-				ui.tags.scroll.Add(widget.NewButton("тут будут теги.."))
+				ui.tags.scroll.Add(ui.tagsAddDefaultButton())
 			} else {
 				for _, val := range ui.currentTask.Tags {
 					ui.tagsAddButton(val)

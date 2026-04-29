@@ -40,6 +40,8 @@ type UI struct {
 	
 	task struct {
 		bg *canvas.Rectangle
+		
+		updateContent func()
 	}
 	
 	tags struct {
@@ -78,6 +80,7 @@ func (ui *UI) Run(ctx context.Context) error {
 	
 	ui.search.updateContent()
 	ui.tags.updateContent()
+	ui.task.updateContent()
 	
 	ui.window.Resize(fyne.NewSize(1000, 800))
 	ui.window.CenterOnScreen()

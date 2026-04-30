@@ -103,32 +103,22 @@ func (t *Task) RemoveSubtask(id string) error {
 	return ErrNotExisting
 }
 
-func (t *Task) SetDueTime(duetime time.Time) error {
-	if duetime.Before(time.Now().UTC()) {
-		return ErrPastDeadline
+func (t *Task) GetRemainingSubtasksCount() (subtasks int) {
+	if len(t.Subtasks) == 0 {
+		return
 	}
-
-	t.DueTime = duetime
-
-	return nil
+	
+	for _, subtask := range(t.Subtasks) {
+		if subtask.Progress >= subtask.NeedProgress {
+			subtasks++
+		}
+	}
+	
+	return
 }
 
 func (t *Task) IsOverdue() bool {
 	return (!t.DueTime.IsZero() && t.DueTime.Before(time.Now().UTC()))
-}
-
-func (t *Task) SetNotifyAt(notifyat time.Time) error {
-	if t.IsOverdue() {
-		return ErrTaskIsOverdue
-	}
-
-	if notifyat.Before(time.Now().UTC()) {
-		return ErrPastNotify
-	}
-
-	t.NotifyAt = notifyat
-
-	return nil
 }
 
 func (t *Task) IsNotifiable() bool {

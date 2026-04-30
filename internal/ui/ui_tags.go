@@ -19,6 +19,7 @@ func (ui *UI) tagsAddButton(tagName string) {
 		}
 		
 		ui.currentTask.RemoveTag(tagName)
+		ui.tags.updateContent()
 	})
 
 	ui.tags.scroll.Add(btn)
@@ -60,6 +61,7 @@ func (ui *UI) InitTags() {
 		
 		ui.currentTask.AddTag(text)
 		ui.tagsAddButton(text)
+		ui.tags.updateContent()
 	})
 	
 	/* Функция обновления контента */

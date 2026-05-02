@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"time"
 	"strings"
+	"strconv"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/widget"
 	"fyne.io/fyne/v2/container"
+	"github.com/absdekty/taskmanager/internal/model"
 	"github.com/absdekty/taskmanager/pkg/logger"
 )
 
@@ -169,6 +171,7 @@ func (ui *UI) InitTask() {
 	// Прочая информация
 	infoDeadLineAt := widget.NewLabel("Будет просрочено:")
 	infoNotifyAt := widget.NewLabel("Напомнить о задаче:")
+	infoTotalProgress := widget.NewLabel("Общий прогресс: 0.0%")
 	
 	// Контент
 	informationContent := container.NewVBox(
@@ -179,6 +182,7 @@ func (ui *UI) InitTask() {
 				nil,
 				infoNameEntry)),
 		container.NewPadded(container.NewBorder(nil, nil, widget.NewLabel("Субзадачи:"), nil, infoSubtasksEntry)),
+		container.NewPadded(infoTotalProgress),
 		widget.NewSeparator(),
 		container.NewPadded(
 			container.NewBorder(
@@ -219,10 +223,144 @@ func (ui *UI) InitTask() {
 	)
 
 	/* Вкладка "Субзадачи" */
-	subtasksContent := container.NewVBox(
-		widget.NewLabel("Субзадачи.."),
+	filteredSubtasks := []*model.Subtask{}
+	
+	subtasksList := widget.NewList(
+		func() int { return len(filteredSubtasks) },
+		func() fyne.CanvasObject {
+			
+			return container.NewVBox(
+				container.NewBorder(nil, nil, widget.NewLabel("Название:"), nil, widget.NewEntry()),
+				container.NewHBox(
+					widget.NewLabel("Прогресс:"),
+					widget.NewEntry(),
+					widget.NewLabel("/"),
+					widget.NewEntry(),
+				))
+		},
+		func(id widget.ListItemID, obj fyne.CanvasObject) {
+			vbox := obj.(*fyne.Container)
+			nameEntry := vbox.Objects[0].(*fyne.Container).Objects[0].(*widget.Entry)
+			
+			hbox := vbox.Objects[1].(*fyne.Container)
+			progressEntry := hbox.Objects[1].(*widget.Entry)
+			needEntry := hbox.Objects[3].(*widget.Entry)
+			
+			subtask := filteredSubtasks[id]
+			
+			nameEntry.SetPlaceHolder(subtask.Name)
+			progressEntry.SetPlaceHolder(strconv.Itoa(subtask.Progress))
+			needEntry.SetPlaceHolder(strconv.Itoa(subtask.NeedProgress))
+			
+			nameEntry.OnSubmitted = func(text string) {
+				if text == subtask.Name {
+					nameEntry.SetText("")
+					return
+				}
+			
+				if text != "" {
+					subtask.Name = text
+				
+					if err := ui.service.UpdateSubtask(ui.ctx, subtask); err != nil {
+						logger.Error.Printf("task nameEntry: %v", err)
+						return
+					}
+					
+					nameEntry.SetText("")
+					nameEntry.SetPlaceHolder(subtask.Name)
+				}
+			}
+			
+			progressEntry.OnSubmitted = func(text string) {
+				if text == strconv.Itoa(subtask.Progress) {
+					progressEntry.SetText("")
+					return
+				}
+			
+				if text != "" {
+					num, err := strconv.Atoi(text)
+					if err != nil {
+						progressEntry.SetText("")
+						return
+					}
+					
+					if num < 0 {
+						num = 0
+					} else if num > subtask.NeedProgress {
+						num = subtask.NeedProgress
+					}
+					
+					subtask.Progress = num
+				
+					if err := ui.service.UpdateSubtask(ui.ctx, subtask); err != nil {
+						logger.Error.Printf("task progressEntry: %v", err)
+						return
+					}
+					
+					progressEntry.SetText("")
+					progressEntry.SetPlaceHolder(fmt.Sprintln(num))
+					
+					ui.task.updateContent()
+				}
+			}
+			
+			needEntry.OnSubmitted = func(text string) {
+				if text == strconv.Itoa(subtask.NeedProgress) {
+					needEntry.SetText("")
+					return
+				}
+			
+				if text != "" {
+					num, err := strconv.Atoi(text)
+					if err != nil {
+						needEntry.SetText("")
+						return
+					}
+					
+					subtask.NeedProgress = num
+				
+					if err := ui.service.UpdateSubtask(ui.ctx, subtask); err != nil {
+						logger.Error.Printf("task needEntry: %v", err)
+						return
+					}
+					
+					needEntry.SetText("")
+					needEntry.SetPlaceHolder(text)
+					
+					ui.task.updateContent()
+				}
+			}
+		})
+	
+	subtasksBtnAdd := widget.NewButton("Добавить", func() {
+		task := ui.currentTask
+		if task != nil {
+			_, err := ui.service.AddSubtask(ui.ctx, task.ID, "Новая субзадача", 1)
+			if err != nil {
+				logger.Error.Printf("task subtasksBtnAdd: %v", err)
+				return
+			}
+			
+			ui.search.updateContent()
+			
+			subtask, err := model.NewSubtask("Новая субзадача 1", 1)
+			if err != nil {
+				logger.Debug.Printf("task subtasksBtnAdd: %v", err)
+				return
+			}
+			
+			filteredSubtasks = append(filteredSubtasks, subtask)
+			
+			subtasksList.Refresh()
+		}
+	})
+	
+	subtasksContent := container.NewBorder(
+		subtasksBtnAdd,
+		nil, nil, nil,
+		subtasksList,
 	)
-
+	
 	/* Функция обновления контента */
 	ui.task.updateContent = func() {
 		task := ui.currentTask
@@ -230,6 +368,7 @@ func (ui *UI) InitTask() {
 		infoNameEntry.OnSubmitted("")
 		
 		if task != nil {
+			/* Вкладка "Информация" */
 			infoNameEntry.SetText("")
 			infoNameEntry.SetPlaceHolder(task.Title)
 			infoNameEntry.Enable()
@@ -261,16 +400,39 @@ func (ui *UI) InitTask() {
 			if !task.NotifyAt.IsZero() {
 				infoNotifyAt.SetText(fmt.Sprintf("Будет напоминание через: %s", FormatDuration(task.NotifyAt.Sub(time.Now().UTC()))))
 			} else { infoNotifyAt.SetText("") }
+			
+			totalProgress, err := ui.service.GetTotalProgress(ui.ctx, task.ID)
+			if err != nil {
+				infoTotalProgress.SetText(fmt.Sprintln("Общий прогресс: 0.0% (ошибка загрузки)"))
+			} else {
+				infoTotalProgress.SetText(fmt.Sprintf("Общий прогресс: %.1f%%", totalProgress))
+			}
+			
+			/* Вкладка "Субзадачи" */
+			subtasksBtnAdd.Enable()
+			
+			filteredSubtasks = make([]*model.Subtask, 0, len(task.Subtasks))
+			
+			for _, subtask := range task.Subtasks {
+				filteredSubtasks = append(filteredSubtasks, subtask)
+			}
 		} else {
-			
-			
+			/* Вкладка "Информация" */
 			infoCreatedEntry.SetPlaceHolder("HH:MM DD-MM-YYYY")
 			
 			infoSubtasksEntry.SetText("0/0")
 			
 			infoDeadLineAt.SetText("")
 			infoNotifyAt.SetText("")
+			infoTotalProgress.SetText(fmt.Sprintln("Общий прогресс: 0.0%"))
+			
+			/* Вкладка "Субзадачи" */
+			filteredSubtasks = []*model.Subtask{}
+			
+			subtasksBtnAdd.Disable()
 		}
+		
+		subtasksList.Refresh()
 	}
 	
 	/* Контент */
@@ -288,7 +450,7 @@ func (ui *UI) InitTask() {
 		defer ticker.Stop()
 		
 		for range ticker.C {
-			task := ui.currentTask			
+			task := ui.currentTask
 			if task != nil {
 				now := time.Now().UTC()
 				dueRemaining := task.DueTime.Sub(now)

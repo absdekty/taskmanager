@@ -16,6 +16,7 @@ type TaskServiceI interface {
 type SubtaskServiceI interface {
 	AddSubtask(ctx context.Context, taskID, name string, needProgress int) ([]*model.Subtask, error)
 	UpdateSubtaskProgress(ctx context.Context, subtaskID string, progress int) error
+	UpdateSubtask(ctx context.Context, subtask *model.Subtask) error
 	DeleteSubtask(ctx context.Context, subtaskID string) error
 }
 
@@ -25,6 +26,7 @@ type TagServiceI interface {
 }
 
 type ServiceI interface {
+	GetTotalProgress(ctx context.Context, taskID string) (float64, error)
 	TaskServiceI
 	SubtaskServiceI
 	TagServiceI

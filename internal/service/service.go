@@ -1,6 +1,7 @@
 package service
 
 import (
+	"math"
 	"context"
 	"github.com/absdekty/taskmanager/internal/model"
 	"github.com/absdekty/taskmanager/internal/repository"
@@ -15,6 +16,40 @@ func NewService(repo repository.RepositoryI) *Service {
 }
 
 var _ ServiceI = (*Service)(nil)
+
+func (s *Service) GetTotalProgress(ctx context.Context, taskID string) (float64, error) {
+	subtasks, err := s.repo.GetSubtasksByTask(ctx, taskID)
+	if err != nil {
+		return 0, err
+	}
+	
+	if len(subtasks) == 0 {
+		return 0, nil
+	}
+	
+	var totalPercent float64
+	var validTasks int
+
+	for _, task := range subtasks {
+		if task == nil || task.NeedProgress == 0 {
+			continue
+		}
+		
+		percent := float64(task.Progress) / float64(task.NeedProgress) * 100
+		if percent > 100 {
+			percent = 100
+		}
+		totalPercent += percent
+		validTasks++
+	}
+
+	if validTasks == 0 {
+		return 0, nil
+	}
+
+	average := totalPercent / float64(validTasks)
+	return math.Round(average*10) / 10, nil
+}
 
 func (s *Service) CreateTask(ctx context.Context, title string) (*model.Task, error) {
 	task, err := model.NewTask(title)
@@ -99,6 +134,10 @@ func (s *Service) UpdateSubtaskProgress(ctx context.Context, subtaskID string, p
 	}
 
 	subtask.Progress = progress
+	return s.repo.UpdateSubtask(ctx, subtask)
+}
+
+func (s *Service) UpdateSubtask(ctx context.Context, subtask *model.Subtask) error {
 	return s.repo.UpdateSubtask(ctx, subtask)
 }
 
